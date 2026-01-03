@@ -1,0 +1,32 @@
+class Solution {
+public:
+    vector<int> res,nc ;
+    void pop(int node,int par,vector<vector<int>>& adj){
+        nc[node]=1 ;
+        for(auto& ch : adj[node]){
+            if(ch==par) continue ;
+            pop(ch,node,adj) ;
+            nc[node]+=nc[ch] ;
+            res[node]+=res[ch]+nc[ch] ;
+        }
+    }
+    void dfs(int node,int par,int n,vector<vector<int>>& adj){
+        if(par!=-1) res[node]=res[par]-nc[node]+(n-nc[node]) ; // vvi
+        for(auto& ch : adj[node]){
+            if(ch==par) continue ;
+            dfs(ch,node,n,adj) ;
+        }
+    }
+    vector<int> sumOfDistancesInTree(int n, vector<vector<int>>& edges) {
+        vector<vector<int>> adj(n) ;
+        nc.assign(n,0) ;
+        res.assign(n,0) ;
+        for(auto& it : edges) {
+            adj[it[0]].push_back(it[1]) ;
+            adj[it[1]].push_back(it[0]) ;
+        }
+        pop(0,-1,adj) ;
+        dfs(0,-1,n,adj) ;
+        return res ;
+    }
+};
