@@ -1,0 +1,29 @@
+class TreeAncestor {
+public:
+    vector<vector<int>> par ;
+    TreeAncestor(int n, vector<int>& parent) {
+        par.push_back(parent) ;
+        for(int i=1;i<16;i++){
+            vector<int> v ;
+            for(int j=0;j<n;j++){
+                if(par[i-1][j]!=-1) v.push_back(par[i-1][par[i-1][j]]) ;
+                else v.push_back(-1) ;
+            }
+            par.push_back(v) ;
+        }
+    }
+    
+    int getKthAncestor(int node, int k) {
+        int fac=1,i=0 ;
+        while(fac<=k){
+            if(k&fac){
+               if(node==-1) return -1 ;
+               node=par[i][node] ;
+            }
+            i++;
+            fac*=2 ;
+        }
+
+        return node ;
+    }
+};
