@@ -1,0 +1,66 @@
+class Solution {
+public:
+    vector<int> pathExistenceQueries(int n, vector<int>& nums, int maxDiff, vector<vector<int>>& queries) {
+        if (n == 0) return {};
+
+        // tried manual jumps but maxdiff may not gice that big jumps
+        vector<pair<int, int>> v(n);
+        for (int i = 0; i < n; i++) v[i] = {nums[i], i};
+        sort(v.begin(), v.end());
+
+        vector<int> vals(n);
+        for (int i = 0; i < n; i++) vals[i] = v[i].first;
+
+        vector<int> pos(n);
+        for (int i = 0; i < n; i++) pos[v[i].second] = i;
+
+        // 2. Binary Lifting Table
+        int max_log = 18; 
+        vector<vector<int>> jump(n, vector<int>(max_log));
+
+        for (int i = 0; i < n; i++) {
+            // Find the furthest index reachable in ONE step
+            int furthest = upper_bound(vals.begin(), vals.end(), vals[i] + maxDiff) - vals.begin() - 1;
+            jump[i][0] = furthest;
+        }
+
+        for (int k = 1; k < max_log; k++) {
+            for (int i = 0; i < n; i++) {
+                jump[i][k] = jump[jump[i][k - 1]][k - 1]; 
+            }
+        }
+
+        vector<int> ans;
+        for (auto& q : queries) {
+            if (q[0] == q[1]) {
+                ans.push_back(0);
+                continue;
+            }
+
+            int u_p = pos[q[0]], v_p = pos[q[1]];
+            // We can only jump 'forward' in a sorted value array
+            if (u_p > v_p) swap(u_p, v_p);
+
+            // Check if v_p is even reachable from u_p
+            int total_reach = u_p;
+            for(int k = max_log - 1; k >= 0; k--) total_reach = jump[total_reach][k];
+            
+            if (total_reach < v_p) {
+                ans.push_back(-1);
+                continue;
+            }
+
+            // Binary Lifting to find min steps
+            int steps = 0;
+            int curr = u_p;
+            for (int k = max_log - 1; k >= 0; k--) {
+                if (jump[curr][k] < v_p) {
+                    curr = jump[curr][k];
+                    steps += (1 << k);
+                }
+            }
+            ans.push_back(steps + 1);
+        }
+        return ans;
+    }
+};
